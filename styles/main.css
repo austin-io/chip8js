@@ -1,0 +1,17 @@
+*,*::before,*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    width: 100%;
+    min-height: 100vh;
+    background-color: #222228;
+}
+
+.ctn {
+    max-width: 1280px;
+    margin-left: auto;
+    margin-right: auto;
+}
