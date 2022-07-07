@@ -6,14 +6,17 @@ function setup() {
     chip = new Chip8({fg: "#F652A0", bg: "#4C5270"});
     
     updateResolution();
+    
     var cnv = createCanvas(chip.canvasWidth, chip.canvasHeight);
     cnv.parent("#chipCanvasContainer");
+    
     chip.setPixel(5,5,true);
+    chip.loadRom(null);
 }
 
 function draw() {
     background(chip.palette.bg);
-    chip.drawDisplay();
+    chip.run();
 }
 
 function updateResolution(){
