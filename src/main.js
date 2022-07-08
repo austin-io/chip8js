@@ -1,6 +1,9 @@
 //import Chip8 from "./chip8.js"
 
 let chip;
+let romFileInput;
+
+let t = 0;
 
 function setup() {
     chip = new Chip8({fg: "#F652A0", bg: "#4C5270"});
@@ -9,14 +12,20 @@ function setup() {
     
     var cnv = createCanvas(chip.canvasWidth, chip.canvasHeight);
     cnv.parent("#chipCanvasContainer");
-    
-    chip.setPixel(5,5,true);
-    chip.loadRom(null);
+
+    romFileInput = createFileInput(loadRomFile);
+
 }
 
 function draw() {
     background(chip.palette.bg);
-    chip.run();
+
+    if(t > chip.fps){
+        chip.run();
+        t = 0;
+    }
+
+    t += deltaTime;
 }
 
 function updateResolution(){
@@ -28,4 +37,8 @@ function updateResolution(){
 function windowResized(){
     updateResolution();
     resizeCanvas(chip.canvasWidth, chip.canvasHeight);
+}
+
+function loadRomFile(file){
+    chip.loadRom(file);
 }
