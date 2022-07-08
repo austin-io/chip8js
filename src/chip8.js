@@ -21,8 +21,8 @@ class Chip8 {
         ]
 
         this.displayIndex = 0;
-        this.swapIndex = 0;
-        this.useSwapBuffer = false;
+        this.swapIndex = 1;
+        this.useSwapBuffer = true;
 
         // 4KB of memory
         this.ram = [...new Array(0xFFF)];
@@ -112,6 +112,12 @@ class Chip8 {
         this.pixelSize = 1;
         this.fps = 1/30;
         this.waitingForKey = false;
+        this.lastX = 0;
+        this.lastKey = 0;
+
+        this.delayTime = 0;
+        this.soundTime = 0;
+        this.mainTime = 0;
 
     }
 
@@ -182,7 +188,8 @@ class Chip8 {
             }
             this.pc = 0x200;
 
-            this.ram[0x1FF] = 3;
+            this.ram[0x1FF] = 4;
+            this.ram[0x1FE] = 1;
             this.paused = false;
 
             console.log("Load Complete");
@@ -198,8 +205,6 @@ class Chip8 {
     }
 
     checkinput(X){
-        if(!keyIsPressed)
-            return;
 
         if(keyCode in this.keyLookup)
             this.registers[X] = this.keyLookup[keyCode];
@@ -207,21 +212,36 @@ class Chip8 {
             this.registers[X] = 0;
 
         this.waitingForKey = false;
-        this.pc += 2;
+        //this.pc += 2;
     
     }
 
-    run(){
+    run(delta){
 
         this.drawDisplay();
 
         if(this.paused)
             return;
 
-        if(this.dt > 0){
-            this.dt--;
+        if(this.delayTime >= 0.016666){
+            this.delayTime = 0;
+            if(this.dt > 0){
+                this.dt--;
+                return;
+            }
+
+            if(this.st > 0)
+                this.st--;
+        }
+
+        this.delayTime += delta;
+
+        if(this.mainTime < this.fps){
+            this.mainTime += delta;
             return;
         }
+
+        this.mainTime = 0;
 
         var instruction = this.ram[this.pc] << 8 | this.ram[this.pc+1];
         var code = instruction & 0xF000;
@@ -232,7 +252,7 @@ class Chip8 {
         var nnn = instruction & 0x0FFF;
 
         if(this.waitingForKey){
-            this.checkinput(X);
+            //this.checkinput(this.lastX);
             return;
         }
 
@@ -240,13 +260,14 @@ class Chip8 {
             //return;
 
         //if(!this.paused)
+        this.printOp(instruction);
         this.pc += 2;
 
         switch(code){
             case 0x0000:
-                if(nn == 0xE0){             // CLS 00E0
+                if(nn === 0xE0){             // CLS 00E0
                     this.clearDisplay();
-                } else if(nn == 0xEE){      // RET 00EE
+                } else if(nn === 0xEE){      // RET 00EE
                     this.pc = this.stack[this.sp];
                     if(this.sp > 0)
                         this.sp--;
@@ -264,7 +285,7 @@ class Chip8 {
                 break;
 
             case 0x3000:                    // SE 3XNN
-                if(this.registers[X] == nn)
+                if(this.registers[X] === nn)
                     this.pc += 2;
                 break;
             
@@ -274,7 +295,7 @@ class Chip8 {
                 break;
             
             case 0x5000:                    // SE 5XY0
-                if(this.registers[X] == this.registers[Y])
+                if(this.registers[X] === this.registers[Y])
                     this.pc += 2;
                 break;
             
@@ -295,12 +316,15 @@ class Chip8 {
                         break;
                     case 0x1:                 // OR 8XY1
                         this.registers[X] |= this.registers[Y];
+                        this.registers[0xF] = 0;
                         break;
                     case 0x2:                 // AND 8XY2
                         this.registers[X] &= this.registers[Y];
+                        this.registers[0xF] = 0;
                         break;
                     case 0x3:                 // XOR 8XY3
                         this.registers[X] ^= this.registers[Y];
+                        this.registers[0xF] = 0;
                         break;
                     case 0x4:                 // ADD 8XY4
                         this.registers[X] += this.registers[Y];
@@ -311,33 +335,39 @@ class Chip8 {
                         this.registers[X] &= 0xFF; 
                         break;
                     case 0x5:                 // SUB 8XY5
-                        if(this.registers[X] > this.registers[Y])
+                        var setCarry = this.registers[X] > this.registers[Y];
+                        this.registers[X] -= this.registers[Y];
+
+                        if(setCarry)
                             this.registers[0xF] = 1;
                         else 
                             this.registers[0xF] = 0;
 
-                        this.registers[X] -= this.registers[Y];
                         this.registers[X] &= 0xFF; 
 
                         break;
                     case 0x6:                 // SHR 8XY6
-                        this.registers[0xF] = this.registers[X] & 0x1;
+                        var shiftBit = this.registers[X] & 0x1;
                         this.registers[X] = this.registers[X] >> 1;
+                        this.registers[0xF] = shiftBit;
 
                         break;
                     case 0x7:                 // SUBN 8XY7
-                        if(this.registers[Y] > this.registers[X])
+                        var setCarry = this.registers[Y] > this.registers[X]
+                        this.registers[X] = this.registers[Y] - this.registers[X];
+                    
+                        if(setCarry)
                             this.registers[0xF] = 1;
                         else 
                             this.registers[0xF] = 0;
 
-                        this.registers[X] = this.registers[Y] - this.registers[X];
                         this.registers[X] &= 0xFF; 
 
                         break;
                     case 0xE:               // SHL 8XYE
-                        this.registers[0xF] = this.registers[X] & 0x80;
+                        var shiftBit = this.registers[X] & 0x80;
                         this.registers[X] = this.registers[X] << 1;
+                        this.registers[0xF] = shiftBit > 0 ? 1 : 0;
                         this.registers[X] &= 0xFF; 
 
                         break;
@@ -354,7 +384,7 @@ class Chip8 {
                 break;
             
             case 0xB000:                    // JMP V0,NNN - BNNN
-                this.pc = this.registers[0] + nnn;
+                this.pc = this.registers[X] + nnn;
                 break; 
             
             case 0xC000:                    // RND VX,NN - CXNN 
@@ -362,6 +392,8 @@ class Chip8 {
                 break;
 
             case 0xD000:                    // DRW VX,VY,N - DXYN
+                this.registers[0xF] = 0;
+                
                 var spriteX = mod(this.registers[X], this.screenWidth);
                 var spriteY = mod(this.registers[Y], this.screenHeight);
 
@@ -379,16 +411,16 @@ class Chip8 {
                             (currentPixel ^ pixelBit) > 0); // xor sprite pixels with display
                         
                         if(pixelBit){
-                            if(pixelBit == currentPixel)
+                            if(pixelBit === currentPixel)
                                 this.registers[0xF] = 1;
                         }
 
-                        if(pixelX == this.screenWidth - 1)
+                        if(pixelX === this.screenWidth - 1)
                             break;
                         
                     }
 
-                    if(pixelY == this.screenHeight - 1)
+                    if(pixelY === this.screenHeight - 1)
                         break;
                 }
         
@@ -397,12 +429,12 @@ class Chip8 {
                 break;
             
             case 0xE000:
-                if(nn == 0x9E){              // SKP VX - EX9E
+                if(nn === 0x9E){              // SKP VX - EX9E
                     // Skip next if key is pressed
                     if(keyIsDown(this.keys[this.registers[X]])){
                         this.pc += 2;
                     }
-                } else if(nn == 0xA1){      // SKNP VX - EXA1
+                } else if(nn === 0xA1){      // SKNP VX - EXA1
                     if(!keyIsDown(this.keys[this.registers[X]])){ 
                         this.pc += 2;
                     }
@@ -416,6 +448,7 @@ class Chip8 {
                         break;
                     case 0x0A:              // LD VX, K - FX0A 
                         this.waitingForKey = true;
+                        this.lastX = X;
                         break;
                     case 0x15:              // LD DT, VX - FX15
                         this.dt = this.registers[X];
@@ -425,7 +458,7 @@ class Chip8 {
                         break;
                     case 0x1E:              // ADD I, VX - FX1E
                         this.index += this.registers[X];
-                        this.index &= 0xFF;
+                        this.index &= 0xFFF;
                         break;
                     case 0x29:              // LD F, VX - FX29
                         this.index = (this.registers[X] * 5) & 0xFF;
@@ -442,18 +475,18 @@ class Chip8 {
                         for(var i = 0; i <= X; i++){
                             this.ram[this.index + i] = this.registers[i] & 0xFF;
                         }
+                        this.index = (this.index + X + 1) & 0xFFF;
                         break;
                     case 0x65:              // LD VX, [I] - FX65
                         for(var i = 0; i <= X; i++){
                             this.registers[i] = this.ram[this.index + i] & 0xFF;
                         }
+                        this.index = (this.index + X + 1) & 0xFFF;
                         break;
                 }    
 
                 break;
         }
-
-        this.printOp(instruction);
 
         if(this.st > 0){
             this.sfx.start();
@@ -461,6 +494,8 @@ class Chip8 {
         } else {
             this.sfx.stop();
         }
+
+        this.lastKey = this.registers[X];
 
         if(this.pc >= this.ram.length)
             this.pc = 0x200;

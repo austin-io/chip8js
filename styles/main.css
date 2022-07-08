@@ -8,10 +8,45 @@ body {
     width: 100%;
     min-height: 100vh;
     background-color: #222228;
+    font-family: Arial;
+
+    display: grid;
+    place-items:center;
 }
 
 .ctn {
     max-width: 1280px;
     margin-left: auto;
     margin-right: auto;
+}
+
+#fileInputContainer {
+    padding: 0.5rem;
+}
+
+.btn {
+    display: inline-block;
+    background-color: lightblue;
+    padding: 0.4rem 0.9rem;
+    border-radius: 100vmax;
+    cursor: pointer;
+    font-weight: bold;
+
+    font-size: medium;
+
+    transition: 200ms;
+}
+
+.btn:hover {
+    background-color: white;
+    transform: scale(1.1);
+}
+
+.btn:active {
+    background-color: #ddd;
+    transform: scale(0.9);
+}
+
+#fileInput {
+    display: none;
 }
