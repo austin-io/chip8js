@@ -6,11 +6,11 @@ let romFileInput;
 let emuTime = 0;
 
 let romFiles = [
-    "../roms/test.ch8",
-    "../roms/pong.ch8",
-    "../roms/maze.ch8",
-    "../roms/tetris.ch8",
-    "../roms/brix.ch8"
+    "test.ch8",
+    "pong.ch8",
+    "maze.ch8",
+    "tetris.ch8",
+    "brix.ch8"
 ];
 
 function setup() {
@@ -58,7 +58,7 @@ function loadRomDropdown(e){
     //var f = new File(romFiles[e.value]);
     //chip.loadRom(new p5.File(f));
 
-    fetch(`../../roms/${romFiles[e.value]}`)
+    fetch(`/roms/${romFiles[e.value]}`)
 		.then(r => r.blob())
 		.then(blob => {
 			var f = new File([blob], romFiles[e.value]);
