@@ -58,7 +58,7 @@ function loadRomDropdown(e){
     //var f = new File(romFiles[e.value]);
     //chip.loadRom(new p5.File(f));
 
-    fetch(`chip8js/roms/${romFiles[e.value]}`)
+    fetch(`roms/${romFiles[e.value]}`)
 		.then(r => r.blob())
 		.then(blob => {
 			var f = new File([blob], romFiles[e.value]);
