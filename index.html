@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <title>Chip-8 JS | Austin-IO</title>
-    
+
     <script src="https://cdn.jsdelivr.net/npm/p5@1.4.1/lib/p5.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.1/addons/p5.sound.min.js"></script>
     <link rel="stylesheet" type="text/css" href="./styles/main.css">
@@ -26,9 +26,9 @@
 
         <div class="links">
             <ul>
-                <li><a href="#">Github &#128193;</a></li>
+                <li><a href="https://github.com/austin-io">Github &#128193;</a></li>
                 <li><a href="#">Discord &#127918;</a></li>
-                <li><a href="#">LinkedIn &#128188;</a></li>
+                <li><a href="https://www.linkedin.com/in/austin-poberezhnik-4570b3167">LinkedIn &#128188;</a></li>
             </ul>
         </div>
         
@@ -45,7 +45,7 @@
             <div class="romsDropdown colorPickerGroup">
                 <label for="romsList">Roms:</label>
 
-                <select name="romsList" id="romsList" onchange="loadRomDropdown(this)">
+                <select name="romsList" id="romsList" oninput="loadRomDropdown(this)">
                   <option value="0">Test Rom</option>
                   <option value="1">Pong</option>
                   <option value="2">Maze</option>

@@ -3,6 +3,9 @@
 let chip;
 let romFileInput;
 
+let fg = "#F652A0";
+let bg = "#4C5270";
+
 let emuTime = 0;
 
 let romFiles = [
@@ -21,7 +24,7 @@ function setup() {
     var cnv = createCanvas(chip.canvasWidth, chip.canvasHeight);
     cnv.parent("#chipCanvasContainer");
 
-    frameRate(120);
+    frameRate(999);
     chip.fps = 0;
 
     romFileInput = createFileInput(loadRomFile);
@@ -29,12 +32,20 @@ function setup() {
     romFileInput.id("fileInput");
     romFileInput.style("display: none;");
 
+    setInterval(() => {
+        chip.run(0.001);
+    }, 1);
+
 }
 
 function draw() {
     background(chip.palette.bg);
 
-    chip.run(deltaTime);
+    //chip.updateKeys();
+
+    chip.drawDisplay();
+
+    //chip.run(deltaTime);
     
 }
 
@@ -67,28 +78,35 @@ function loadRomDropdown(e){
 
 }
 
-function keyPressed(){
-    //chip.run();
-    console.log(chip);
-}
+document.addEventListener("keydown", e => {
+    if(e.keyCode in chip.keyLookup)
+        chip.keyState[chip.keyLookup[e.keyCode]] = true;
+});
 
-function keyReleased(){
+document.addEventListener("keyup", e => {
+    if(e.keyCode in chip.keyLookup)
+        chip.keyState[chip.keyLookup[e.keyCode]] = false;
+
     if(!chip.waitingForKey)
         return;
-    chip.checkinput(chip.lastX);
-}
+
+    chip.checkinput(chip.lastX, e.keyCode);
+});
 
 function resetChip(){
-    chip = new Chip8({fg: "#F652A0", bg: "#4C5270"});
+    chip = new Chip8({fg: fg, bg: bg});
     chip.fps = 0;
     updateResolution();
     console.log("Reset Chip8");
 }
 
 function updateColors(e, id){
-    if(id == 0)
+    if(id == 0){
+        fg = e.value;
         chip.palette.fg = e.value;
-    else
+    } else{
+        bg = e.value;
         chip.palette.bg = e.value;
+    }
 
 }

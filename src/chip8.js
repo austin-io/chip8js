@@ -104,6 +104,9 @@ class Chip8 {
             86: 15 
         }
 
+        this.keyState = [...new Array(0xF)];
+        this.keyState.fill(false);
+
         this.sfx = new p5.Pulse(300, 0.5);
 
         this.canvasWidth = 64;
@@ -127,6 +130,7 @@ class Chip8 {
                 if(!this.getPixel(x,y))
                     continue;
                 noStroke();
+                //stroke("#000")
                 fill(this.palette.fg);
                 rect(
                     x * this.pixelSize,
@@ -188,8 +192,10 @@ class Chip8 {
             }
             this.pc = 0x200;
 
-            this.ram[0x1FF] = 4;
-            this.ram[0x1FE] = 1;
+            // Initializing Test Rom Options
+            this.ram[0x1FF] = 0;
+            this.ram[0x1FE] = 0;
+
             this.paused = false;
 
             console.log("Load Complete");
@@ -204,16 +210,21 @@ class Chip8 {
 
     }
 
-    checkinput(X){
+    checkinput(X, kc){
 
-        if(keyCode in this.keyLookup)
-            this.registers[X] = this.keyLookup[keyCode];
+        if(kc in this.keyLookup)
+            this.registers[X] = this.keyLookup[kc];
         else
             this.registers[X] = 0;
 
         this.waitingForKey = false;
-        //this.pc += 2;
     
+    }
+
+    updateKeys(){
+        for(var i = 0; i < 16; i++){
+            this.keyState[i] = keyIsDown(this.keys[i]);
+        }
     }
 
     run(delta){
@@ -431,11 +442,11 @@ class Chip8 {
             case 0xE000:
                 if(nn === 0x9E){              // SKP VX - EX9E
                     // Skip next if key is pressed
-                    if(keyIsDown(this.keys[this.registers[X]])){
+                    if(this.keyState[this.registers[X]]){
                         this.pc += 2;
                     }
                 } else if(nn === 0xA1){      // SKNP VX - EXA1
-                    if(!keyIsDown(this.keys[this.registers[X]])){ 
+                    if(!this.keyState[this.registers[X]]){ 
                         this.pc += 2;
                     }
                 }
