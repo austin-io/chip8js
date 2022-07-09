@@ -8,11 +8,27 @@
     <script src="./src/chip8.js"></script>
 
     <meta charset="utf-8" />
+    <meta charset="ISO-8859-1"> 
 </head>
 
 <body>
 
     <main>
+        <div class="heading">
+            <h1>Chip-8 JS</h1>
+            <h4>An 8-bit emulator for the Chip-8 CPU</h4>
+        </div>
+
+        <hr>
+
+        <div class="links">
+            <ul>
+                <li><a href="#">Github &#128193;</a></li>
+                <li><a href="#">Discord &#127918;</a></li>
+                <li><a href="#">LinkedIn &#128188;</a></li>
+            </ul>
+        </div>
+        
         <div id="chipCanvasContainer" class="ctn">
 
         </div>
@@ -20,7 +36,19 @@
         <div id="fileInputContainer" class="ctn">
             <label class="btn" for="fileInput">Upload File</label>
             <button onclick="resetChip()" class="btn">Reset</button>
-            <input type="color">
+            <div class="colorPickerGroup">Foreground: <input type="color" value="#F652A0" oninput="updateColors(this, 0)"></div>
+            <div class="colorPickerGroup">Background: <input type="color" value="#4C5270" oninput="updateColors(this, 1)"></div>
+            
+            <div class="romsDropdown colorPickerGroup">
+                <label for="romsList">Roms:</label>
+
+                <select name="romsList" id="romsList" onchange="loadRomDropdown(this)">
+                  <option value="0">Test Rom</option>
+                  <option value="1">Pong</option>
+                  <option value="2">Maze</option>
+                  <option value="3">Tetris</option>
+                </select> 
+            </div>
         </div>
 
     </main>

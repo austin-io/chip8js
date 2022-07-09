@@ -5,6 +5,14 @@ let romFileInput;
 
 let emuTime = 0;
 
+let romFiles = [
+    "../roms/test.ch8",
+    "../roms/pong.ch8",
+    "../roms/maze.ch8",
+    "../roms/tetris.ch8",
+    "../roms/brix.ch8"
+];
+
 function setup() {
     chip = new Chip8({fg: "#F652A0", bg: "#4C5270"});
     
@@ -19,6 +27,7 @@ function setup() {
     romFileInput = createFileInput(loadRomFile);
     romFileInput.parent("#fileInputContainer");
     romFileInput.id("fileInput");
+    romFileInput.style("display: none;");
 
 }
 
@@ -44,6 +53,20 @@ function loadRomFile(file){
     chip.loadRom(file);
 }
 
+function loadRomDropdown(e){
+    resetChip();
+    //var f = new File(romFiles[e.value]);
+    //chip.loadRom(new p5.File(f));
+
+    fetch(`../../roms/${romFiles[e.value]}`)
+		.then(r => r.blob())
+		.then(blob => {
+			var f = new File([blob], romFiles[e.value]);
+            chip.loadRom(new p5.File(f));
+		});
+
+}
+
 function keyPressed(){
     //chip.run();
     console.log(chip);
@@ -60,4 +83,12 @@ function resetChip(){
     chip.fps = 0;
     updateResolution();
     console.log("Reset Chip8");
+}
+
+function updateColors(e, id){
+    if(id == 0)
+        chip.palette.fg = e.value;
+    else
+        chip.palette.bg = e.value;
+
 }
