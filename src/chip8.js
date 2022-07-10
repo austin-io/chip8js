@@ -21,8 +21,8 @@ class Chip8 {
         ]
 
         this.displayIndex = 0;
-        this.swapIndex = 1;
-        this.useSwapBuffer = true;
+        this.swapIndex = 0;
+        this.useSwapBuffer = false;
 
         // 4KB of memory
         this.ram = [...new Array(0xFFF)];
@@ -122,6 +122,8 @@ class Chip8 {
         this.soundTime = 0;
         this.mainTime = 0;
 
+        this.redraw = false;
+
     }
 
     drawDisplay(){
@@ -140,6 +142,7 @@ class Chip8 {
                     );
             }
         }
+        this.redraw = true;
     }
 
     swap(){
@@ -163,13 +166,16 @@ class Chip8 {
     }
 
     clearDisplay(){
+        if(this.useSwapBuffer)
+            this.swap();
+
         for(var i = 0; i < this.buffers[this.swapIndex].length; i++){
             //this.display[i] = false;
             this.buffers[this.swapIndex][i] = false;
         }
 
-        if(this.useSwapBuffer)
-            this.swap()
+        this.redraw = true;
+
     }
 
     clearRam(){
@@ -229,12 +235,12 @@ class Chip8 {
 
     run(delta){
 
-        this.drawDisplay();
+        //this.drawDisplay();
 
         if(this.paused)
             return;
 
-        if(this.delayTime >= 0.016666){
+        if(this.delayTime >= 1/60){
             this.delayTime = 0;
             if(this.dt > 0){
                 this.dt--;
@@ -251,6 +257,8 @@ class Chip8 {
             this.mainTime += delta;
             return;
         }
+
+        console.log(delta);
 
         this.mainTime = 0;
 
@@ -459,6 +467,7 @@ class Chip8 {
                         break;
                     case 0x0A:              // LD VX, K - FX0A 
                         this.waitingForKey = true;
+                        this.redraw = true;
                         this.lastX = X;
                         break;
                     case 0x15:              // LD DT, VX - FX15

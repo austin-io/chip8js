@@ -8,6 +8,8 @@ let bg = "#4C5270";
 
 let emuTime = 0;
 
+let lastTime = (new Date()).getTime();
+
 let romFiles = [
     "test.ch8",
     "pong.ch8",
@@ -25,17 +27,26 @@ function setup() {
     cnv.parent("#chipCanvasContainer");
 
     frameRate(999);
-    chip.fps = 0;
 
     romFileInput = createFileInput(loadRomFile);
     romFileInput.parent("#fileInputContainer");
     romFileInput.id("fileInput");
     romFileInput.style("display: none;");
 
-    setInterval(() => {
-        chip.run(0.001);
-    }, 1);
+}
 
+function gameLoop(){
+    var currentTime = 0;
+    for(var i = 0; i < 1000; i++){
+        currentTime = (new Date()).getTime();
+        chip.run(max((currentTime - lastTime) / 1000, 0.001));
+        lastTime = currentTime;
+
+        if(chip.redraw)
+            break;
+    }
+    chip.drawDisplay();
+    chip.redraw = false;
 }
 
 function draw() {
@@ -43,7 +54,8 @@ function draw() {
 
     //chip.updateKeys();
 
-    chip.drawDisplay();
+    gameLoop();
+    //chip.drawDisplay();
 
     //chip.run(deltaTime);
     
